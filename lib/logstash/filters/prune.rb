@@ -3,7 +3,7 @@ require "logstash/filters/base"
 require "logstash/namespace"
 
 
-# The prune filter is for pruning event data from @fileds based on whitelist/blacklist
+# The prune filter is for pruning event data from `@fields` based on whitelist/blacklist
 # of field names or their values (names and values can also be regular expressions).
 
 class LogStash::Filters::Prune < LogStash::Filters::Base
@@ -16,7 +16,7 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
   config :interpolate, :validate => :boolean, :default => false
 
   # Include only fields only if their names match specified regexps, default to empty list which means include everything.
-  # 
+  # [source,ruby] 
   #     filter { 
   #       %PLUGIN% { 
   #         tags            => [ "apache-accesslog" ]
@@ -25,8 +25,8 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
   #     }
   config :whitelist_names, :validate => :array, :default => []
 
-  # Exclude fields which names match specified regexps, by default exclude unresolved %{field} strings.
-  #
+  # Exclude fields which names match specified regexps, by default exclude unresolved `%{field}` strings.
+  # [source,ruby]
   #     filter { 
   #       %PLUGIN% { 
   #         tags            => [ "apache-accesslog" ]
@@ -38,7 +38,7 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
   # Include specified fields only if their values match regexps.
   # In case field values are arrays, the fields are pruned on per array item
   # thus only matching array items will be included.
-  # 
+  # [source,ruby]
   #     filter { 
   #       %PLUGIN% { 
   #         tags             => [ "apache-accesslog" ]
@@ -52,7 +52,7 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
   # Exclude specified fields if their values match regexps.
   # In case field values are arrays, the fields are pruned on per array item
   # in case all array items are matched whole field will be deleted.
-  #
+  # [source,ruby]
   #     filter { 
   #       %PLUGIN% { 
   #         tags             => [ "apache-accesslog" ]
