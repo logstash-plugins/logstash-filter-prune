@@ -1,4 +1,4 @@
-require "spec_helper"
+require "logstash/devutils/rspec/spec_helper"
 require "logstash/filters/prune"
 
 # Currently the prune filter has bugs and I can't really tell what the intended
