@@ -8,7 +8,6 @@ require "logstash/namespace"
 
 class LogStash::Filters::Prune < LogStash::Filters::Base
   config_name "prune"
-  milestone 1
 
   # Trigger whether configation fields and values should be interpolated for
   # dynamic values.
