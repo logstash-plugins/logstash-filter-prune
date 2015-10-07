@@ -78,7 +78,7 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
 
   public
   def filter(event)
-    return unless filter?(event)
+    
 
     hash = event.to_hash
 
