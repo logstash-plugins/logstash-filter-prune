@@ -3,13 +3,19 @@ require "logstash/filters/base"
 require "logstash/namespace"
 
 
-# The prune filter is for pruning event data from `@fields` based on whitelist/blacklist
-# of field names or their values (names and values can also be regular expressions).
+# The prune filter is for removing fields from events based on
+# whitelists or blacklist of field names or their values (names and
+# values can also be regular expressions).
+#
+# This can e.g. be useful if you have a <<plugins-filters-json,json>>
+# or <<plugins-filters-kv,kv>> filter that creates a number of fields
+# with names that you don't necessarily know the names of beforehand,
+# and you only want to keep a subset of them.
 
 class LogStash::Filters::Prune < LogStash::Filters::Base
   config_name "prune"
 
-  # Trigger whether configation fields and values should be interpolated for
+  # Trigger whether configuration fields and values should be interpolated for
   # dynamic values.
   # Probably adds some performance overhead. Defaults to false.
   config :interpolate, :validate => :boolean, :default => false
@@ -18,29 +24,25 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
   # [source,ruby] 
   #     filter { 
   #       %PLUGIN% { 
-  #         tags            => [ "apache-accesslog" ]
   #         whitelist_names => [ "method", "(referrer|status)", "${some}_field" ]
   #       }
   #     }
   config :whitelist_names, :validate => :array, :default => []
 
-  # Exclude fields which names match specified regexps, by default exclude unresolved `%{field}` strings.
+  # Exclude fields whose names match specified regexps, by default exclude unresolved `%{field}` strings.
   # [source,ruby]
   #     filter { 
   #       %PLUGIN% { 
-  #         tags            => [ "apache-accesslog" ]
   #         blacklist_names => [ "method", "(referrer|status)", "${some}_field" ]
   #       }
   #     }
   config :blacklist_names, :validate => :array, :default => [ "%\{[^}]+\}" ]
 
-  # Include specified fields only if their values match regexps.
-  # In case field values are arrays, the fields are pruned on per array item
-  # thus only matching array items will be included.
+  # Include specified fields only if their values match one of the supplied regular expressions.
+  # In case field values are arrays, each array item is matched against the regular expressions and only matching array items will be included.
   # [source,ruby]
   #     filter { 
   #       %PLUGIN% { 
-  #         tags             => [ "apache-accesslog" ]
   #         whitelist_values => [ "uripath", "/index.php",
   #                               "method", "(GET|POST)",
   #                               "status", "^[^2]" ]
@@ -48,13 +50,11 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
   #     }
   config :whitelist_values, :validate => :hash, :default => {}
 
-  # Exclude specified fields if their values match regexps.
-  # In case field values are arrays, the fields are pruned on per array item
-  # in case all array items are matched whole field will be deleted.
+  # Exclude specified fields if their values match one of the supplied regular expressions.
+  # In case field values are arrays, each array item is matched against the regular expressions and matching array items will be excluded.
   # [source,ruby]
   #     filter { 
   #       %PLUGIN% { 
-  #         tags             => [ "apache-accesslog" ]
   #         blacklist_values => [ "uripath", "/index.php",
   #                               "method", "(HEAD|OPTIONS)",
   #                               "status", "^[^2]" ]
