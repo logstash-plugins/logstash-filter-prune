@@ -438,4 +438,13 @@ describe LogStash::Filters::Prune, :if => false  do
     end
   end
 
+  describe "when field name is nil" do
+    it "should not raise exception" do
+      subject = LogStash::Filters::Prune.new({})
+      subject.register
+      event = LogStash::Event.new(nil => "foo")
+      expect {subject.filter(event)}.not_to raise_error
+    end
+  end
+
 end
