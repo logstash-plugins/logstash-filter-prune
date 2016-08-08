@@ -16,11 +16,11 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
   config_name "prune"
 
   # Trigger whether configuration fields and values should be interpolated for
-  # dynamic values.
+  # dynamic values (when resolving %{some_field}).
   # Probably adds some performance overhead. Defaults to false.
   config :interpolate, :validate => :boolean, :default => false
 
-  # Include only fields only if their names match specified regexps, default to empty list which means include everything.
+  # Include only fields and tags only if their names match specified regexps, default to empty list which means include everything.
   # [source,ruby] 
   #     filter { 
   #       %PLUGIN% { 
@@ -29,7 +29,7 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
   #     }
   config :whitelist_names, :validate => :array, :default => []
 
-  # Exclude fields whose names match specified regexps, by default exclude unresolved `%{field}` strings.
+  # Exclude fields and tags whose names match specified regexps, by default exclude unresolved `%{field}` strings.
   # [source,ruby]
   #     filter { 
   #       %PLUGIN% { 
