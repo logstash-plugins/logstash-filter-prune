@@ -11,16 +11,39 @@ require "logstash/namespace"
 # or <<plugins-filters-kv,kv>> filter that creates a number of fields
 # with names that you don't necessarily know the names of beforehand,
 # and you only want to keep a subset of them.
+#
+# Usage help:
+# To specify a exact field name or value use the regular expression syntax `^some_name_or_value$`.
+# Example usage: Input data `{ "msg":"hello world", "msg_short":"hw" }` 
+# [source,ruby]
+#     filter { 
+#       %PLUGIN% { 
+#         whitelist_names => [ "msg" ]
+#       }
+#     }
+# Allows both `"msg"` and `"msg_short"` through.
+# 
+# While:
+# [source,ruby]
+#     filter { 
+#       %PLUGIN% { 
+#         whitelist_names => ["^msg$"]
+#       }
+#     }
+# Allows only `"msg"` through.
+#
+# Logstash stores an event's `tags` as a field which is subject to pruning. Remember to `whitelist_names => [ "^tags$" ]`
+# to maintain `tags` after pruning or use `blacklist_values => [ "^tag_name$" ]` to eliminate a specific `tag`.
 
 class LogStash::Filters::Prune < LogStash::Filters::Base
   config_name "prune"
 
   # Trigger whether configuration fields and values should be interpolated for
-  # dynamic values (when resolving %{some_field}).
+  # dynamic values (when resolving `%{some_field}`).
   # Probably adds some performance overhead. Defaults to false.
   config :interpolate, :validate => :boolean, :default => false
 
-  # Include only fields and tags only if their names match specified regexps, default to empty list which means include everything.
+  # Include only fields only if their names match specified regexps, default to empty list which means include everything.
   # [source,ruby] 
   #     filter { 
   #       %PLUGIN% { 
@@ -29,7 +52,7 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
   #     }
   config :whitelist_names, :validate => :array, :default => []
 
-  # Exclude fields and tags whose names match specified regexps, by default exclude unresolved `%{field}` strings.
+  # Exclude fields whose names match specified regexps, by default exclude unresolved `%{field}` strings.
   # [source,ruby]
   #     filter { 
   #       %PLUGIN% { 
