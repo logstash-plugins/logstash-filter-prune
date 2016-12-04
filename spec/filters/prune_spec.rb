@@ -16,7 +16,7 @@ describe LogStash::Filters::Prune, :if => false  do
         prune { }
       }
     CONFIG
-    
+
     sample(
       "firstname"    => "Borat",
       "lastname"     => "Sagdiyev",
@@ -28,15 +28,15 @@ describe LogStash::Filters::Prune, :if => false  do
       "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
       "%{hmm}"       => "doh"
     ) do
-      insist { subject["firstname"] } == "Borat"
-      insist { subject["lastname"] } == "Sagdiyev"
-      insist { subject["fullname"] } == "Borat Sagdiyev"
-      insist { subject["country"] } == "Kazakhstan"
-      insist { subject["location"] } == "Somethere in Kazakhstan"
-      insist { subject["hobby"] } == "Cloud"
-      insist { subject["status"] } == "200"
-      insist { subject["Borat_saying"] } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
-      insist { subject["%{hmm}"] } == nil
+      insist { subject.get("firstname") } == "Borat"
+      insist { subject.get("lastname") } == "Sagdiyev"
+      insist { subject.get("fullname") } == "Borat Sagdiyev"
+      insist { subject.get("country") } == "Kazakhstan"
+      insist { subject.get("location") } == "Somethere in Kazakhstan"
+      insist { subject.get("hobby") } == "Cloud"
+      insist { subject.get("status") } == "200"
+      insist { subject.get("Borat_saying") } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
+      insist { subject.get("%{hmm}") } == nil
     end
   end
 
@@ -49,7 +49,7 @@ describe LogStash::Filters::Prune, :if => false  do
         }
       }
     CONFIG
-    
+
     sample(
       "firstname"    => "Borat",
       "lastname"     => "Sagdiyev",
@@ -61,15 +61,15 @@ describe LogStash::Filters::Prune, :if => false  do
       "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
       "%{hmm}"       => "doh"
     ) do
-      insist { subject["firstname"] } == "Borat"
-      insist { subject["lastname"] } == nil
-      insist { subject["fullname"] } == nil
-      insist { subject["country"] } == nil
-      insist { subject["location"] } == nil
-      insist { subject["hobby"] } == "Cloud"
-      insist { subject["status"] } == "200"
-      insist { subject["Borat_saying"] } == nil
-      insist { subject["%{hmm}"] } == nil
+      insist { subject.get("firstname") } == "Borat"
+      insist { subject.get("lastname") } == nil
+      insist { subject.get("fullname") } == nil
+      insist { subject.get("country") } == nil
+      insist { subject.get("location") } == nil
+      insist { subject.get("hobby") } == "Cloud"
+      insist { subject.get("status") } == "200"
+      insist { subject.get("Borat_saying") } == nil
+      insist { subject.get("%{hmm}") } == nil
     end
   end
 
@@ -83,7 +83,7 @@ describe LogStash::Filters::Prune, :if => false  do
         }
       }
     CONFIG
-    
+
     sample(
       "firstname"    => "Borat",
       "lastname"     => "Sagdiyev",
@@ -95,15 +95,15 @@ describe LogStash::Filters::Prune, :if => false  do
       "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
       "%{hmm}"       => "doh"
     ) do
-      insist { subject["firstname"] } == "Borat"
-      insist { subject["lastname"] } == nil
-      insist { subject["fullname"] } == nil
-      insist { subject["country"] } == nil
-      insist { subject["location"] } == nil
-      insist { subject["hobby"] } == "Cloud"
-      insist { subject["status"] } == "200"
-      insist { subject["Borat_saying"] } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
-      insist { subject["%{hmm}"] } == nil
+      insist { subject.get("firstname") } == "Borat"
+      insist { subject.get("lastname") } == nil
+      insist { subject.get("fullname") } == nil
+      insist { subject.get("country") } == nil
+      insist { subject.get("location") } == nil
+      insist { subject.get("hobby") } == "Cloud"
+      insist { subject.get("status") } == "200"
+      insist { subject.get("Borat_saying") } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
+      insist { subject.get("%{hmm}") } == nil
     end
   end
 
@@ -128,15 +128,15 @@ describe LogStash::Filters::Prune, :if => false  do
       "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
       "%{hmm}"       => "doh"
     ) do
-      insist { subject["firstname"] } == nil
-      insist { subject["lastname"] } == "Sagdiyev"
-      insist { subject["fullname"] } == "Borat Sagdiyev"
-      insist { subject["country"] } == "Kazakhstan"
-      insist { subject["location"] } == "Somethere in Kazakhstan"
-      insist { subject["hobby"] } == nil
-      insist { subject["status"] } == nil
-      insist { subject["Borat_saying"] } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
-      insist { subject["%{hmm}"] } == "doh"
+      insist { subject.get("firstname") } == nil
+      insist { subject.get("lastname") } == "Sagdiyev"
+      insist { subject.get("fullname") } == "Borat Sagdiyev"
+      insist { subject.get("country") } == "Kazakhstan"
+      insist { subject.get("location") } == "Somethere in Kazakhstan"
+      insist { subject.get("hobby") } == nil
+      insist { subject.get("status") } == nil
+      insist { subject.get("Borat_saying") } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
+      insist { subject.get("%{hmm}") } == "doh"
     end
   end
 
@@ -162,15 +162,15 @@ describe LogStash::Filters::Prune, :if => false  do
       "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
       "%{hmm}"       => "doh"
     ) do
-      insist { subject["firstname"] } == nil
-      insist { subject["lastname"] } == "Sagdiyev"
-      insist { subject["fullname"] } == "Borat Sagdiyev"
-      insist { subject["country"] } == "Kazakhstan"
-      insist { subject["location"] } == "Somethere in Kazakhstan"
-      insist { subject["hobby"] } == nil
-      insist { subject["status"] } == nil
-      insist { subject["Borat_saying"] } == nil
-      insist { subject["%{hmm}"] } == "doh"
+      insist { subject.get("firstname") } == nil
+      insist { subject.get("lastname") } == "Sagdiyev"
+      insist { subject.get("fullname") } == "Borat Sagdiyev"
+      insist { subject.get("country") } == "Kazakhstan"
+      insist { subject.get("location") } == "Somethere in Kazakhstan"
+      insist { subject.get("hobby") } == nil
+      insist { subject.get("status") } == nil
+      insist { subject.get("Borat_saying") } == nil
+      insist { subject.get("%{hmm}") } == "doh"
     end
   end
 
@@ -201,25 +201,25 @@ describe LogStash::Filters::Prune, :if => false  do
       "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
       "%{hmm}"       => "doh"
     ) do
-      insist { subject["firstname"] } == "Borat"
+      insist { subject.get("firstname") } == "Borat"
 
       # TODO(sissel): According to the config above, this should be nil because
       # it is not in the list of whitelisted fields, but we expect it to be
       # "Sagdiyev" ? I am confused.
-      insist { subject["lastname"] } == "Sagdiyev"
-      insist { subject["fullname"] } == nil
-      insist { subject["country"] } == "Kazakhstan"
-      insist { subject["location"] } == nil
-      insist { subject["hobby"] } == "Cloud"
-      insist { subject["status"] } == "200"
-      insist { subject["Borat_saying"] } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
+      insist { subject.get("lastname") } == "Sagdiyev"
+      insist { subject.get("fullname") } == nil
+      insist { subject.get("country") } == "Kazakhstan"
+      insist { subject.get("location") } == nil
+      insist { subject.get("hobby") } == "Cloud"
+      insist { subject.get("status") } == "200"
+      insist { subject.get("Borat_saying") } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
 
       # TODO(sissel): Contrary to the 'lastname' check, we expect %{hmm} field
-      # to be nil because it is not whitelisted, yes? Contradictory insists 
+      # to be nil because it is not whitelisted, yes? Contradictory insists
       # here. I don't know what the intended behavior is... Seems like
       # whitelist means 'anything not here' but since this test is written
       # confusingly, I dont' know how to move forward.
-      insist { subject["%{hmm}"] } == nil
+      insist { subject.get("%{hmm}") } == nil
     end
   end
 
@@ -249,15 +249,15 @@ describe LogStash::Filters::Prune, :if => false  do
       "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
       "%{hmm}"       => "doh"
     ) do
-      insist { subject["firstname"] } == "Borat"
-      insist { subject["lastname"] } == "Sagdiyev"
-      insist { subject["fullname"] } == "Borat Sagdiyev"
-      insist { subject["country"] } == "Kazakhstan"
-      insist { subject["location"] } == nil
-      insist { subject["hobby"] } == "Cloud"
-      insist { subject["status"] } == "200"
-      insist { subject["Borat_saying"] } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
-      insist { subject["%{hmm}"] } == nil
+      insist { subject.get("firstname") } == "Borat"
+      insist { subject.get("lastname") } == "Sagdiyev"
+      insist { subject.get("fullname") } == "Borat Sagdiyev"
+      insist { subject.get("country") } == "Kazakhstan"
+      insist { subject.get("location") } == nil
+      insist { subject.get("hobby") } == "Cloud"
+      insist { subject.get("status") } == "200"
+      insist { subject.get("Borat_saying") } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
+      insist { subject.get("%{hmm}") } == nil
     end
   end
 
@@ -286,15 +286,15 @@ describe LogStash::Filters::Prune, :if => false  do
       "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
       "%{hmm}"       => "doh"
     ) do
-      insist { subject["firstname"] } == nil
-      insist { subject["lastname"] } == "Sagdiyev"
-      insist { subject["fullname"] } == "Borat Sagdiyev"
-      insist { subject["country"] } == "Kazakhstan"
-      insist { subject["location"] } == "Somethere in Kazakhstan"
-      insist { subject["hobby"] } == "Cloud"
-      insist { subject["status"] } == nil
-      insist { subject["Borat_saying"] } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
-      insist { subject["%{hmm}"] } == nil
+      insist { subject.get("firstname") } == nil
+      insist { subject.get("lastname") } == "Sagdiyev"
+      insist { subject.get("fullname") } == "Borat Sagdiyev"
+      insist { subject.get("country") } == "Kazakhstan"
+      insist { subject.get("location") } == "Somethere in Kazakhstan"
+      insist { subject.get("hobby") } == "Cloud"
+      insist { subject.get("status") } == nil
+      insist { subject.get("Borat_saying") } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
+      insist { subject.get("%{hmm}") } == nil
     end
   end
 
@@ -324,15 +324,15 @@ describe LogStash::Filters::Prune, :if => false  do
       "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
       "%{hmm}"       => "doh"
     ) do
-      insist { subject["firstname"] } == nil
-      insist { subject["lastname"] } == "Sagdiyev"
-      insist { subject["fullname"] } == nil
-      insist { subject["country"] } == "Kazakhstan"
-      insist { subject["location"] } == "Somethere in Kazakhstan"
-      insist { subject["hobby"] } == "Cloud"
-      insist { subject["status"] } == nil
-      insist { subject["Borat_saying"] } == nil
-      insist { subject["%{hmm}"] } == nil
+      insist { subject.get("firstname") } == nil
+      insist { subject.get("lastname") } == "Sagdiyev"
+      insist { subject.get("fullname") } == nil
+      insist { subject.get("country") } == "Kazakhstan"
+      insist { subject.get("location") } == "Somethere in Kazakhstan"
+      insist { subject.get("hobby") } == "Cloud"
+      insist { subject.get("status") } == nil
+      insist { subject.get("Borat_saying") } == nil
+      insist { subject.get("%{hmm}") } == nil
     end
   end
 
@@ -354,10 +354,10 @@ describe LogStash::Filters::Prune, :if => false  do
       "status" => [ "100", "200", "300", "400", "500" ],
       "error"  => [ "This is foolish" , "Need smthing smart too" ]
     ) do
-      insist { subject["blah"] } == "foo"
-      insist { subject["error"] } == nil
-      insist { subject["xxx"] } == [ "1 2 3", "3 4 5" ]
-      insist { subject["status"] } == [ "100", "200", "300" ]
+      insist { subject.get("blah") } == "foo"
+      insist { subject.get("error") } == nil
+      insist { subject.get("xxx") } == [ "1 2 3", "3 4 5" ]
+      insist { subject.get("status") } == [ "100", "200", "300" ]
     end
   end
 
@@ -379,15 +379,15 @@ describe LogStash::Filters::Prune, :if => false  do
       "status" => [ "100", "200", "300", "400", "500" ],
       "error"  => [ "This is foolish", "Need smthing smart too" ]
     ) do
-      insist { subject["blah"] } == "foo"
-      insist { subject["error"] } == [ "This is foolish", "Need smthing smart too" ]
-      insist { subject["xxx"] } == nil
-      insist { subject["status"] } == [ "400", "500" ]
+      insist { subject.get("blah") } == "foo"
+      insist { subject.get("error") } == [ "This is foolish", "Need smthing smart too" ]
+      insist { subject.get("xxx") } == nil
+      insist { subject.get("status") } == [ "400", "500" ]
     end
   end
 
   describe "whitelist field values with interpolation on fields witn array values" do
- 
+
     config <<-CONFIG
       filter {
         prune {
@@ -405,10 +405,10 @@ describe LogStash::Filters::Prune, :if => false  do
       "status" => [ "100", "200", "300", "400", "500" ],
       "error"  => [ "This is foolish" , "Need smthing smart too" ]
     ) do
-      insist { subject["blah"] } == "foo"
-      insist { subject["error"] } == [ "This is foolish" ]
-      insist { subject["xxx"] } == [ "1 2 3", "3 4 5" ]
-      insist { subject["status"] } == [ "100", "200", "300" ]
+      insist { subject.get("blah") } == "foo"
+      insist { subject.get("error") } == [ "This is foolish" ]
+      insist { subject.get("xxx") } == [ "1 2 3", "3 4 5" ]
+      insist { subject.get("status") } == [ "100", "200", "300" ]
     end
   end
 
@@ -431,10 +431,10 @@ describe LogStash::Filters::Prune, :if => false  do
       "status" => [ "100", "200", "300", "400", "500" ],
       "error"  => [ "This is foolish" , "Need smthing smart too" ]
     ) do
-      insist { subject["blah"] } == "foo"
-      insist { subject["error"] } == [ "Need smthing smart too" ]
-      insist { subject["xxx"] } == nil
-      insist { subject["status"] } == [ "400", "500" ]
+      insist { subject.get("blah") } == "foo"
+      insist { subject.get("error") } == [ "Need smthing smart too" ]
+      insist { subject.get("xxx") } == nil
+      insist { subject.get("status") } == [ "400", "500" ]
     end
   end
 
