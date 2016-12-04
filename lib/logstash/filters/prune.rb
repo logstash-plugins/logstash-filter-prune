@@ -14,19 +14,19 @@ require "logstash/namespace"
 #
 # Usage help:
 # To specify a exact field name or value use the regular expression syntax `^some_name_or_value$`.
-# Example usage: Input data `{ "msg":"hello world", "msg_short":"hw" }` 
+# Example usage: Input data `{ "msg":"hello world", "msg_short":"hw" }`
 # [source,ruby]
-#     filter { 
-#       %PLUGIN% { 
+#     filter {
+#       %PLUGIN% {
 #         whitelist_names => [ "msg" ]
 #       }
 #     }
 # Allows both `"msg"` and `"msg_short"` through.
-# 
+#
 # While:
 # [source,ruby]
-#     filter { 
-#       %PLUGIN% { 
+#     filter {
+#       %PLUGIN% {
 #         whitelist_names => ["^msg$"]
 #       }
 #     }
@@ -44,9 +44,9 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
   config :interpolate, :validate => :boolean, :default => false
 
   # Include only fields only if their names match specified regexps, default to empty list which means include everything.
-  # [source,ruby] 
-  #     filter { 
-  #       %PLUGIN% { 
+  # [source,ruby]
+  #     filter {
+  #       %PLUGIN% {
   #         whitelist_names => [ "method", "(referrer|status)", "${some}_field" ]
   #       }
   #     }
@@ -54,8 +54,8 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
 
   # Exclude fields whose names match specified regexps, by default exclude unresolved `%{field}` strings.
   # [source,ruby]
-  #     filter { 
-  #       %PLUGIN% { 
+  #     filter {
+  #       %PLUGIN% {
   #         blacklist_names => [ "method", "(referrer|status)", "${some}_field" ]
   #       }
   #     }
@@ -64,8 +64,8 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
   # Include specified fields only if their values match one of the supplied regular expressions.
   # In case field values are arrays, each array item is matched against the regular expressions and only matching array items will be included.
   # [source,ruby]
-  #     filter { 
-  #       %PLUGIN% { 
+  #     filter {
+  #       %PLUGIN% {
   #         whitelist_values => [ "uripath", "/index.php",
   #                               "method", "(GET|POST)",
   #                               "status", "^[^2]" ]
@@ -76,8 +76,8 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
   # Exclude specified fields if their values match one of the supplied regular expressions.
   # In case field values are arrays, each array item is matched against the regular expressions and matching array items will be excluded.
   # [source,ruby]
-  #     filter { 
-  #       %PLUGIN% { 
+  #     filter {
+  #       %PLUGIN% {
   #         blacklist_values => [ "uripath", "/index.php",
   #                               "method", "(HEAD|OPTIONS)",
   #                               "status", "^[^2]" ]
@@ -101,7 +101,7 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
 
   public
   def filter(event)
-    
+
 
     hash = event.to_hash
 
@@ -161,9 +161,10 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
 
     fields_to_remove.each do |field|
       if field.is_a?(Hash)
-        hash[field[:key]] = hash[field[:key]] - field[:values]
+        event.set(field[:key], hash[field[:key]] - field[:values])
       else
         hash.delete(field)
+        event.remove(field)
       end
     end
 
