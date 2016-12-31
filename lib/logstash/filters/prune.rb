@@ -34,6 +34,10 @@ require "logstash/namespace"
 #
 # Logstash stores an event's `tags` as a field which is subject to pruning. Remember to `whitelist_names => [ "^tags$" ]`
 # to maintain `tags` after pruning or use `blacklist_values => [ "^tag_name$" ]` to eliminate a specific `tag`.
+#
+# NOTE: This filter currently only support operations on top-level fields,
+# i.e. whitelisting and blacklisting of subfields based on name or value
+# does not work.
 
 class LogStash::Filters::Prune < LogStash::Filters::Base
   config_name "prune"
