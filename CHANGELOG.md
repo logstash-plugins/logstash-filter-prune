@@ -1,3 +1,6 @@
+## 3.0.2
+  - Fix some documentation issues
+
 ## 3.0.0
  - internal: Bumped up logstash-core-plugin-api dependency to allow installation with Logstash 5.
  - doc: Clarify that pruning of subfields is unsupported.
