@@ -63,7 +63,7 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
   #         blacklist_names => [ "method", "(referrer|status)", "${some}_field" ]
   #       }
   #     }
-  config :blacklist_names, :validate => :array, :default => [ "%\{[^}]+\}" ]
+  config :blacklist_names, :validate => :array, :default => [ "%\\{[^}]+\\}" ]
 
   # Include specified fields only if their values match one of the supplied regular expressions.
   # In case field values are arrays, each array item is matched against the regular expressions and only matching array items will be included.
