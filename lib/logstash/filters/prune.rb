@@ -118,6 +118,7 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
     unless @whitelist_names.empty?
       @whitelist_names_regexp = Regexp.union(@whitelist_names.map {|x| Regexp.new(event.sprintf(x))}) if @interpolate
       hash.each_key do |field|
+        next if field.nil?
         fields_to_remove << field unless field.match(@whitelist_names_regexp)
       end
     end
@@ -125,6 +126,7 @@ class LogStash::Filters::Prune < LogStash::Filters::Base
     unless @blacklist_names.empty?
       @blacklist_names_regexp = Regexp.union(@blacklist_names.map {|x| Regexp.new(event.sprintf(x))}) if @interpolate
       hash.each_key do |field|
+        next if field.nil?
         fields_to_remove << field if field.match(@blacklist_names_regexp)
       end
     end
