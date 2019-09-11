@@ -139,6 +139,7 @@ Include only fields only if their names match specified regexps, default to empt
 
 Include specified fields only if their values match one of the supplied regular expressions.
 In case field values are arrays, each array item is matched against the regular expressions and only matching array items will be included.
+By default all fields that are not listed in this setting are kept unless pruned by other settings
 [source,ruby]
     filter {
       prune {
