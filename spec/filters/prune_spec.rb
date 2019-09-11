@@ -6,18 +6,11 @@ require "logstash/filters/prune"
 #
 # See the 'whitelist field values with interpolation' test for a commented
 # explanation of my confusion.
-describe LogStash::Filters::Prune, :if => false  do
-  
-
-  describe "defaults" do
-
-    config <<-CONFIG
-      filter {
-        prune { }
-      }
-    CONFIG
-
-    sample(
+describe LogStash::Filters::Prune do
+  subject { described_class.new(config) }
+  let(:config) { {} }
+  let(:event_data) do
+    {
       "firstname"    => "Borat",
       "lastname"     => "Sagdiyev",
       "fullname"     => "Borat Sagdiyev",
@@ -26,416 +19,264 @@ describe LogStash::Filters::Prune, :if => false  do
       "hobby"        => "Cloud",
       "status"       => "200",
       "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
-      "%{hmm}"       => "doh"
-    ) do
-      insist { subject.get("firstname") } == "Borat"
-      insist { subject.get("lastname") } == "Sagdiyev"
-      insist { subject.get("fullname") } == "Borat Sagdiyev"
-      insist { subject.get("country") } == "Kazakhstan"
-      insist { subject.get("location") } == "Somethere in Kazakhstan"
-      insist { subject.get("hobby") } == "Cloud"
-      insist { subject.get("status") } == "200"
-      insist { subject.get("Borat_saying") } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
-      insist { subject.get("%{hmm}") } == nil
+    }
+  end
+
+  let(:event) { LogStash::Event.new(event_data) }
+
+  before(:each) do
+    subject.register
+    subject.filter(event)
+  end
+
+  describe "default behaviour" do
+    it "retains all fields since whiteliste_names is empty" do
+      expect(event.to_hash.keys).to include(*event_data.keys)
+    end
+    describe "blacklist_names" do
+      let(:event_data) { super.merge("%{hmm}" => "doh") }
+      it "drops unresolved field references" do
+        expect(event.get("%{hmm}")).to be_nil
+      end
     end
   end
 
-  describe "whitelist field names" do
+  describe "whitelist_names" do
 
-    config <<-CONFIG
-      filter {
-        prune {
-          whitelist_names => [ "firstname", "(hobby|status)", "%{firstname}_saying" ]
+    let(:config) do
+      { "whitelist_names" => [ "firstname", "(hobby|status)", "%{firstname}_saying" ] }
+    end
+
+    it "keeps fields in the list" do
+      expect(event.get("firstname")).to eq("Borat")
+      expect(event.get("hobby")).to eq("Cloud")
+      expect(event.get("status")).to eq("200")
+    end
+
+    it "drops fields not described in the whitelist" do
+      expect(event.get("lastname")).to be_nil
+      expect(event.get("fullname")).to be_nil
+      expect(event.get("country")).to be_nil
+      expect(event.get("location")).to be_nil
+      expect(event.get("Borat_saying")).to be_nil
+      expect(event.get("%{hmm}")).to be_nil
+    end
+
+    context "with interpolation" do
+
+      let(:config) do
+        {
+          "whitelist_names" => [ "firstname", "%{firstname}_saying" ],
+          "interpolate" => true
+        }
+      end
+
+      it "retains fields that match after interpolation" do
+        expect(event.get("firstname")).to eq("Borat")
+        expect(event.get("Borat_saying")).to eq("Cloud is not ready for enterprise if is not integrate with single server running Active Directory.")
+      end
+    end
+  end
+
+  describe "blacklist_names" do
+
+    let(:config) do
+      { "blacklist_names" => [ "firstname", "(hobby|status)", "%{firstname}_saying" ] }
+    end
+
+    it "drops fields in the list" do
+      expect(event.get("firstname")).to eq(nil)
+      expect(event.get("hobby")).to eq(nil)
+      expect(event.get("status")).to eq(nil)
+    end
+
+    it "keeps the remaining fields" do
+      expect(event.get("lastname")).to eq("Sagdiyev")
+      expect(event.get("fullname")).to eq("Borat Sagdiyev")
+      expect(event.get("country")).to eq("Kazakhstan")
+      expect(event.get("location")).to eq("Somethere in Kazakhstan")
+      expect(event.get("Borat_saying")).to eq("Cloud is not ready for enterprise if is not integrate with single server running Active Directory.")
+    end
+
+    context "if there are non resolved field references" do
+      let(:event_data) { super.merge("%{hmm}" => "doh") }
+      it "also drops them" do
+        expect(event.get("%{hmm}")).to eq("doh")
+      end
+    end
+    context "with interpolation" do
+
+      let(:config) { super.merge("interpolate" => true) }
+
+      it "drops fields after interpolation" do
+        expect(event.get("Borat_saying")).to be_nil
+      end
+    end
+  end
+  describe "whitelist_values" do
+
+    let(:config) do
+      {
+        # This should only  permit fields named 'firstname', 'fullname',
+        # 'location', 'status', etc.
+        "whitelist_values" => {
+          "firstname" => "^Borat$",
+          "fullname" => "%{firstname} Sagdiyev",
+          "location" => "no no no",
+          "status" => "^2",
+          "%{firstname}_saying" => "%{hobby}.*Active"
         }
       }
-    CONFIG
+    end
 
-    sample(
-      "firstname"    => "Borat",
-      "lastname"     => "Sagdiyev",
-      "fullname"     => "Borat Sagdiyev",
-      "country"      => "Kazakhstan",
-      "location"     => "Somethere in Kazakhstan",
-      "hobby"        => "Cloud",
-      "status"       => "200",
-      "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
-      "%{hmm}"       => "doh"
-    ) do
-      insist { subject.get("firstname") } == "Borat"
-      insist { subject.get("lastname") } == nil
-      insist { subject.get("fullname") } == nil
-      insist { subject.get("country") } == nil
-      insist { subject.get("location") } == nil
-      insist { subject.get("hobby") } == "Cloud"
-      insist { subject.get("status") } == "200"
-      insist { subject.get("Borat_saying") } == nil
-      insist { subject.get("%{hmm}") } == nil
+    it "keeps fields in the whitelist if the value matches" do
+      expect(event.get("firstname")).to eq("Borat")
+      expect(event.get("status")).to eq("200")
+    end
+
+    it "drops fields in the whitelist if the value doesn't match" do
+      expect(event.get("fullname")).to be_nil
+      expect(event.get("location")).to be_nil
+    end
+
+    it "include all other fields" do
+      # whitelist_values will only filter configured fields
+      # all others are still governed by the whitelist_names setting
+      # which means they're all kept by default
+      expect(event.get("lastname")).to eq("Sagdiyev")
+      expect(event.get("country")).to eq("Kazakhstan")
+      expect(event.get("hobby")).to eq("Cloud")
+      expect(event.get("Borat_saying")).to eq("Cloud is not ready for enterprise if is not integrate with single server running Active Directory.")
+    end
+
+    context "with interpolation" do
+
+      let(:config) do
+        {
+          "whitelist_values" => {
+            "firstname" => "^Borat$",
+            "fullname" => "%{firstname} Sagdiyev",
+            "location" => "no no no",
+            "status" => "^2",
+            "%{firstname}_saying" => "%{hobby}.*Active"
+          },
+          "interpolate" => true
+        }
+      end
+      let(:event_data) { super.merge("%{hmm}" => "doh") }
+      it "keeps field values after interpolation" do
+        expect(event.get("fullname")).to eq("Borat Sagdiyev")
+        expect(event.get("Borat_saying")).to eq("Cloud is not ready for enterprise if is not integrate with single server running Active Directory.")
+      end
+    end
+    context "with array values" do
+
+      let(:config) do
+        {
+          "whitelist_values" => {
+            "status" => "^(1|2|3)",
+            "xxx" => "3",
+            "error" => "%{blah}"
+          }
+        }
+      end
+
+      let(:event_data) do
+        {
+          "blah"   => "foo",
+          "xxx" => [ "1 2 3", "3 4 5" ],
+          "status" => [ "100", "200", "300", "400", "500" ],
+          "error"  => [ "This is foolish" , "Need smthing smart too" ]
+        }
+      end
+
+      it "drops fields if no value matches" do
+        expect(event.get("error")).to eq(nil)
+      end
+
+      it "keeps only elements that match" do
+        expect(event.get("status")).to eq([ "100", "200", "300" ])
+      end
+
+      it "keeps values intact if they all match" do
+        expect(event.get("xxx")).to eq([ "1 2 3", "3 4 5" ])
+      end
+      context "with interpolation" do
+        let(:config) { super.merge("interpolate" => true) }
+        it "keeps values that match after interpolation" do
+          expect(event.get("error")).to eq([ "This is foolish" ])
+        end
+      end
     end
   end
 
-  describe "whitelist field names with interpolation" do
+  describe "blacklist_values" do
 
-    config <<-CONFIG
-      filter {
-        prune {
-          whitelist_names => [ "firstname", "(hobby|status)", "%{firstname}_saying" ]
-          interpolate     => true
+    let(:config) do
+      {
+        "blacklist_values" => {
+          "firstname" => "^Borat$",
+          "fullname" => "%{firstname} Sagdiyev",
+          "location" => "no no no",
+          "status" => "^2",
+          "%{firstname}_saying" => "%{hobby}.*Active"
         }
       }
-    CONFIG
-
-    sample(
-      "firstname"    => "Borat",
-      "lastname"     => "Sagdiyev",
-      "fullname"     => "Borat Sagdiyev",
-      "country"      => "Kazakhstan",
-      "location"     => "Somethere in Kazakhstan",
-      "hobby"        => "Cloud",
-      "status"       => "200",
-      "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
-      "%{hmm}"       => "doh"
-    ) do
-      insist { subject.get("firstname") } == "Borat"
-      insist { subject.get("lastname") } == nil
-      insist { subject.get("fullname") } == nil
-      insist { subject.get("country") } == nil
-      insist { subject.get("location") } == nil
-      insist { subject.get("hobby") } == "Cloud"
-      insist { subject.get("status") } == "200"
-      insist { subject.get("Borat_saying") } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
-      insist { subject.get("%{hmm}") } == nil
     end
-  end
 
-  describe "blacklist field names" do
+    it "drops fields that match the values" do
+      expect(event.get("firstname")).to eq(nil)
+      expect(event.get("status")).to eq(nil)
+    end
 
-    config <<-CONFIG
-      filter {
-        prune {
-          blacklist_names => [ "firstname", "(hobby|status)", "%{firstname}_saying" ]
+    it "keeps fields that don't match the values" do
+      expect(event.get("fullname")).to eq("Borat Sagdiyev")
+      expect(event.get("location")).to eq("Somethere in Kazakhstan")
+    end
+
+    context "with interpolation" do
+
+      let(:config) { super.merge("interpolate" => true) }
+
+      it "drops fields that match after interpolation" do
+        expect(event.get("fullname")).to eq(nil)
+        expect(event.get("Borat_saying")).to eq(nil)
+      end
+    end
+    context "with array values" do
+
+      let(:config) do
+        {
+          "blacklist_values" => {
+            "status" => "^(1|2|3)",
+            "xxx" => "3",
+            "error" => "%{blah}"
+          }
         }
-      }
-    CONFIG
-
-    sample(
-      "firstname"    => "Borat",
-      "lastname"     => "Sagdiyev",
-      "fullname"     => "Borat Sagdiyev",
-      "country"      => "Kazakhstan",
-      "location"     => "Somethere in Kazakhstan",
-      "hobby"        => "Cloud",
-      "status"       => "200",
-      "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
-      "%{hmm}"       => "doh"
-    ) do
-      insist { subject.get("firstname") } == nil
-      insist { subject.get("lastname") } == "Sagdiyev"
-      insist { subject.get("fullname") } == "Borat Sagdiyev"
-      insist { subject.get("country") } == "Kazakhstan"
-      insist { subject.get("location") } == "Somethere in Kazakhstan"
-      insist { subject.get("hobby") } == nil
-      insist { subject.get("status") } == nil
-      insist { subject.get("Borat_saying") } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
-      insist { subject.get("%{hmm}") } == "doh"
-    end
-  end
-
-  describe "blacklist field names with interpolation" do
-
-    config <<-CONFIG
-      filter {
-        prune {
-          blacklist_names => [ "firstname", "(hobby|status)", "%{firstname}_saying" ]
-          interpolate     => true
+      end
+      let(:event_data) do
+        {
+          "blah"   => "foo",
+          "xxx" => [ "1 2 3", "3 4 5" ],
+          "status" => [ "100", "200", "300", "400", "500" ],
+          "error"  => [ "This is foolish", "Need smthing smart too" ]
         }
-      }
-    CONFIG
+      end
+      it "drops fields if no elements match" do
+        expect(event.get("xxx")).to eq(nil)
+      end
 
-    sample(
-      "firstname"    => "Borat",
-      "lastname"     => "Sagdiyev",
-      "fullname"     => "Borat Sagdiyev",
-      "country"      => "Kazakhstan",
-      "location"     => "Somethere in Kazakhstan",
-      "hobby"        => "Cloud",
-      "status"       => "200",
-      "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
-      "%{hmm}"       => "doh"
-    ) do
-      insist { subject.get("firstname") } == nil
-      insist { subject.get("lastname") } == "Sagdiyev"
-      insist { subject.get("fullname") } == "Borat Sagdiyev"
-      insist { subject.get("country") } == "Kazakhstan"
-      insist { subject.get("location") } == "Somethere in Kazakhstan"
-      insist { subject.get("hobby") } == nil
-      insist { subject.get("status") } == nil
-      insist { subject.get("Borat_saying") } == nil
-      insist { subject.get("%{hmm}") } == "doh"
+      it "keeps values that don't match" do
+        expect(event.get("error")).to eq([ "This is foolish", "Need smthing smart too" ])
+        expect(event.get("status")).to eq([ "400", "500" ])
+      end
+
+      context "with interpolation" do
+        let(:config) { super.merge("interpolate" => true) }
+        it "drops values that match after interpolation" do
+          expect(event.get("error")).to eq([ "Need smthing smart too" ])
+        end
+      end
     end
   end
-
-  describe "whitelist field values" do
-
-    config <<-CONFIG
-      filter {
-        prune {
-          # This should only  permit fields named 'firstname', 'fullname',
-          # 'location', 'status', etc.
-          whitelist_values => [ "firstname", "^Borat$",
-                                "fullname", "%{firstname} Sagdiyev",
-                                "location", "no no no",
-                                "status", "^2",
-                                "%{firstname}_saying", "%{hobby}.*Active" ]
-        }
-      }
-    CONFIG
-
-    sample(
-      "firstname"    => "Borat",
-      "lastname"     => "Sagdiyev",
-      "fullname"     => "Borat Sagdiyev",
-      "country"      => "Kazakhstan",
-      "location"     => "Somethere in Kazakhstan",
-      "hobby"        => "Cloud",
-      "status"       => "200",
-      "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
-      "%{hmm}"       => "doh"
-    ) do
-      insist { subject.get("firstname") } == "Borat"
-
-      # TODO(sissel): According to the config above, this should be nil because
-      # it is not in the list of whitelisted fields, but we expect it to be
-      # "Sagdiyev" ? I am confused.
-      insist { subject.get("lastname") } == "Sagdiyev"
-      insist { subject.get("fullname") } == nil
-      insist { subject.get("country") } == "Kazakhstan"
-      insist { subject.get("location") } == nil
-      insist { subject.get("hobby") } == "Cloud"
-      insist { subject.get("status") } == "200"
-      insist { subject.get("Borat_saying") } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
-
-      # TODO(sissel): Contrary to the 'lastname' check, we expect %{hmm} field
-      # to be nil because it is not whitelisted, yes? Contradictory insists
-      # here. I don't know what the intended behavior is... Seems like
-      # whitelist means 'anything not here' but since this test is written
-      # confusingly, I dont' know how to move forward.
-      insist { subject.get("%{hmm}") } == nil
-    end
-  end
-
-  describe "whitelist field values with interpolation" do
-
-    config <<-CONFIG
-      filter {
-        prune {
-          whitelist_values => [ "firstname", "^Borat$",
-                                "fullname", "%{firstname} Sagdiyev",
-                                "location", "no no no",
-                                "status", "^2",
-                                "%{firstname}_saying", "%{hobby}.*Active" ]
-          interpolate      => true
-        }
-      }
-    CONFIG
-
-    sample(
-      "firstname"    => "Borat",
-      "lastname"     => "Sagdiyev",
-      "fullname"     => "Borat Sagdiyev",
-      "country"      => "Kazakhstan",
-      "location"     => "Somethere in Kazakhstan",
-      "hobby"        => "Cloud",
-      "status"       => "200",
-      "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
-      "%{hmm}"       => "doh"
-    ) do
-      insist { subject.get("firstname") } == "Borat"
-      insist { subject.get("lastname") } == "Sagdiyev"
-      insist { subject.get("fullname") } == "Borat Sagdiyev"
-      insist { subject.get("country") } == "Kazakhstan"
-      insist { subject.get("location") } == nil
-      insist { subject.get("hobby") } == "Cloud"
-      insist { subject.get("status") } == "200"
-      insist { subject.get("Borat_saying") } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
-      insist { subject.get("%{hmm}") } == nil
-    end
-  end
-
-  describe "blacklist field values" do
-
-    config <<-CONFIG
-      filter {
-        prune {
-          blacklist_values => [ "firstname", "^Borat$",
-                                "fullname", "%{firstname} Sagdiyev",
-                                "location", "no no no",
-                                "status", "^2",
-                                "%{firstname}_saying", "%{hobby}.*Active" ]
-        }
-      }
-    CONFIG
-
-    sample(
-      "firstname"    => "Borat",
-      "lastname"     => "Sagdiyev",
-      "fullname"     => "Borat Sagdiyev",
-      "country"      => "Kazakhstan",
-      "location"     => "Somethere in Kazakhstan",
-      "hobby"        => "Cloud",
-      "status"       => "200",
-      "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
-      "%{hmm}"       => "doh"
-    ) do
-      insist { subject.get("firstname") } == nil
-      insist { subject.get("lastname") } == "Sagdiyev"
-      insist { subject.get("fullname") } == "Borat Sagdiyev"
-      insist { subject.get("country") } == "Kazakhstan"
-      insist { subject.get("location") } == "Somethere in Kazakhstan"
-      insist { subject.get("hobby") } == "Cloud"
-      insist { subject.get("status") } == nil
-      insist { subject.get("Borat_saying") } == "Cloud is not ready for enterprise if is not integrate with single server running Active Directory."
-      insist { subject.get("%{hmm}") } == nil
-    end
-  end
-
-  describe "blacklist field values with interpolation" do
-
-    config <<-CONFIG
-      filter {
-        prune {
-          blacklist_values => [ "firstname", "^Borat$",
-                                "fullname", "%{firstname} Sagdiyev",
-                                "location", "no no no",
-                                "status", "^2",
-                                "%{firstname}_saying", "%{hobby}.*Active" ]
-          interpolate      => true
-        }
-      }
-    CONFIG
-
-    sample(
-      "firstname"    => "Borat",
-      "lastname"     => "Sagdiyev",
-      "fullname"     => "Borat Sagdiyev",
-      "country"      => "Kazakhstan",
-      "location"     => "Somethere in Kazakhstan",
-      "hobby"        => "Cloud",
-      "status"       => "200",
-      "Borat_saying" => "Cloud is not ready for enterprise if is not integrate with single server running Active Directory.",
-      "%{hmm}"       => "doh"
-    ) do
-      insist { subject.get("firstname") } == nil
-      insist { subject.get("lastname") } == "Sagdiyev"
-      insist { subject.get("fullname") } == nil
-      insist { subject.get("country") } == "Kazakhstan"
-      insist { subject.get("location") } == "Somethere in Kazakhstan"
-      insist { subject.get("hobby") } == "Cloud"
-      insist { subject.get("status") } == nil
-      insist { subject.get("Borat_saying") } == nil
-      insist { subject.get("%{hmm}") } == nil
-    end
-  end
-
-  describe "whitelist field values on fields witn array values" do
-
-    config <<-CONFIG
-      filter {
-        prune {
-          whitelist_values => [ "status", "^(1|2|3)",
-                                "xxx", "3",
-                                "error", "%{blah}" ]
-        }
-      }
-    CONFIG
-
-    sample(
-      "blah"   => "foo",
-      "xxx" => [ "1 2 3", "3 4 5" ],
-      "status" => [ "100", "200", "300", "400", "500" ],
-      "error"  => [ "This is foolish" , "Need smthing smart too" ]
-    ) do
-      insist { subject.get("blah") } == "foo"
-      insist { subject.get("error") } == nil
-      insist { subject.get("xxx") } == [ "1 2 3", "3 4 5" ]
-      insist { subject.get("status") } == [ "100", "200", "300" ]
-    end
-  end
-
-  describe "blacklist field values on fields witn array values" do
-
-    config <<-CONFIG
-      filter {
-        prune {
-          blacklist_values => [ "status", "^(1|2|3)",
-                                "xxx", "3",
-                                "error", "%{blah}" ]
-        }
-      }
-    CONFIG
-
-    sample(
-      "blah"   => "foo",
-      "xxx" => [ "1 2 3", "3 4 5" ],
-      "status" => [ "100", "200", "300", "400", "500" ],
-      "error"  => [ "This is foolish", "Need smthing smart too" ]
-    ) do
-      insist { subject.get("blah") } == "foo"
-      insist { subject.get("error") } == [ "This is foolish", "Need smthing smart too" ]
-      insist { subject.get("xxx") } == nil
-      insist { subject.get("status") } == [ "400", "500" ]
-    end
-  end
-
-  describe "whitelist field values with interpolation on fields witn array values" do
-
-    config <<-CONFIG
-      filter {
-        prune {
-          whitelist_values => [ "status", "^(1|2|3)",
-                                "xxx", "3",
-                                "error", "%{blah}" ]
-          interpolate      => true
-        }
-      }
-    CONFIG
-
-    sample(
-      "blah"   => "foo",
-      "xxx" => [ "1 2 3", "3 4 5" ],
-      "status" => [ "100", "200", "300", "400", "500" ],
-      "error"  => [ "This is foolish" , "Need smthing smart too" ]
-    ) do
-      insist { subject.get("blah") } == "foo"
-      insist { subject.get("error") } == [ "This is foolish" ]
-      insist { subject.get("xxx") } == [ "1 2 3", "3 4 5" ]
-      insist { subject.get("status") } == [ "100", "200", "300" ]
-    end
-  end
-
-  describe "blacklist field values with interpolation on fields witn array values" do
-
-    config <<-CONFIG
-      filter {
-        prune {
-          blacklist_values => [ "status", "^(1|2|3)",
-                                "xxx", "3",
-                                "error", "%{blah}" ]
-          interpolate      => true
-        }
-      }
-    CONFIG
-
-    sample(
-      "blah"   => "foo",
-      "xxx" => [ "1 2 3", "3 4 5" ],
-      "status" => [ "100", "200", "300", "400", "500" ],
-      "error"  => [ "This is foolish" , "Need smthing smart too" ]
-    ) do
-      insist { subject.get("blah") } == "foo"
-      insist { subject.get("error") } == [ "Need smthing smart too" ]
-      insist { subject.get("xxx") } == nil
-      insist { subject.get("status") } == [ "400", "500" ]
-    end
-  end
-
 end
