@@ -1,3 +1,9 @@
+# 3.0.4
+  - Fixed regex to prevent Exception in sprintf call [#25](https://github.com/logstash-plugins/logstash-filter-prune/pull/25)
+  - Changed testing to docker [#27](https://github.com/logstash-plugins/logstash-filter-prune/pull/27)
+  - Added clarification in docs around whitelist_values
+  - Changed tests from insist to expect
+
 ## 3.0.3
   - Update gemspec summary
 
