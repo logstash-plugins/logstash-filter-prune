@@ -1,6 +1,6 @@
 # Logstash Plugin
 
-[![Travis Build Status](https://travis-ci.org/logstash-plugins/logstash-filter-prune.svg)](https://travis-ci.org/logstash-plugins/logstash-filter-prune)
+[![Travis Build Status](https://travis-ci.com/logstash-plugins/logstash-filter-prune.svg)](https://travis-ci.com/logstash-plugins/logstash-filter-prune)
 
 This is a plugin for [Logstash](https://github.com/elastic/logstash).
 
