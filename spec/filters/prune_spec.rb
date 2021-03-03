@@ -34,7 +34,7 @@ describe LogStash::Filters::Prune do
       expect(event.to_hash.keys).to include(*event_data.keys)
     end
     describe "blacklist_names" do
-      let(:event_data) { super.merge("%{hmm}" => "doh") }
+      let(:event_data) { super().merge("%{hmm}" => "doh") }
       it "drops unresolved field references" do
         expect(event.get("%{hmm}")).to be_nil
       end
@@ -99,14 +99,14 @@ describe LogStash::Filters::Prune do
     end
 
     context "if there are non resolved field references" do
-      let(:event_data) { super.merge("%{hmm}" => "doh") }
+      let(:event_data) { super().merge("%{hmm}" => "doh") }
       it "also drops them" do
         expect(event.get("%{hmm}")).to eq("doh")
       end
     end
     context "with interpolation" do
 
-      let(:config) { super.merge("interpolate" => true) }
+      let(:config) { super().merge("interpolate" => true) }
 
       it "drops fields after interpolation" do
         expect(event.get("Borat_saying")).to be_nil
@@ -163,7 +163,7 @@ describe LogStash::Filters::Prune do
           "interpolate" => true
         }
       end
-      let(:event_data) { super.merge("%{hmm}" => "doh") }
+      let(:event_data) { super().merge("%{hmm}" => "doh") }
       it "keeps field values after interpolation" do
         expect(event.get("fullname")).to eq("Borat Sagdiyev")
         expect(event.get("Borat_saying")).to eq("Cloud is not ready for enterprise if is not integrate with single server running Active Directory.")
@@ -202,7 +202,7 @@ describe LogStash::Filters::Prune do
         expect(event.get("xxx")).to eq([ "1 2 3", "3 4 5" ])
       end
       context "with interpolation" do
-        let(:config) { super.merge("interpolate" => true) }
+        let(:config) { super().merge("interpolate" => true) }
         it "keeps values that match after interpolation" do
           expect(event.get("error")).to eq([ "This is foolish" ])
         end
@@ -236,7 +236,7 @@ describe LogStash::Filters::Prune do
 
     context "with interpolation" do
 
-      let(:config) { super.merge("interpolate" => true) }
+      let(:config) { super().merge("interpolate" => true) }
 
       it "drops fields that match after interpolation" do
         expect(event.get("fullname")).to eq(nil)
@@ -272,7 +272,7 @@ describe LogStash::Filters::Prune do
       end
 
       context "with interpolation" do
-        let(:config) { super.merge("interpolate" => true) }
+        let(:config) { super().merge("interpolate" => true) }
         it "drops values that match after interpolation" do
           expect(event.get("error")).to eq([ "Need smthing smart too" ])
         end
