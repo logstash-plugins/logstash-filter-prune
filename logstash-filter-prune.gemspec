@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
 
   s.name            = 'logstash-filter-prune'
-  s.version         = '3.0.4'
+  s.version         = ::File.read('version').split("\n").first
   s.licenses        = ['Apache License (2.0)']
   s.summary         = "Prunes event data based on a list of fields to blacklist or whitelist"
   s.description     = "This gem is a Logstash plugin required to be installed on top of the Logstash core pipeline using $LS_HOME/bin/logstash-plugin install gemname. This gem is not a stand-alone program"
